@@ -16,7 +16,7 @@ console.log("Allowed Frontend URL:", process.env.FRONTEND_URL);
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, // This is where your Angular app is running in development
+    origin: "*", // This is where your Angular app is running in development
     methods: "GET,POST,PUT,DELETE", // Allow specific HTTP methods
     allowedHeaders: ["Content-Type", "Authorization"], // Add your custom headers here
     credentials: true, // Allow cookies to be sent
