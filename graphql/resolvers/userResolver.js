@@ -82,10 +82,8 @@ const userResolver = {
           user: user,
         };
 
-        if (loggedUser) {
-          const quizStats = await QuizStats.findById("global_stats");
-          profileObject.quizStats = quizStats.difficulty;
-        }
+        const quizStats = await QuizStats.findById("global_stats");
+        profileObject.quizStats = quizStats.difficulty;
 
         if (user.role === "creator") {
           const filter =
