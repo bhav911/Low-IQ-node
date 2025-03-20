@@ -10,8 +10,9 @@ const notificationRoute = require("./routes/notification.routes");
 const quizRoutes = require("./routes/quiz.routes");
 const accountRoutes = require("./routes/account.routes");
 
-console.log("=== CORS Debugging ===");
-
+app.get("/", (req, res) => {
+  res.send("API is working!");
+});
 const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.va53l.mongodb.net/${process.env.MONGO_DATABASE}`;
 
 console.log("Allowed Frontend URL:", process.env.FRONTEND_URL);
@@ -25,7 +26,7 @@ app.use(
   })
 );
 
-app.use(process.env.FRONTEND_URL)
+app.use(process.env.FRONTEND_URL);
 
 app.use(express.json());
 
