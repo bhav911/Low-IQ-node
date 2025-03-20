@@ -47,9 +47,9 @@ const startGraphQLServer = async (app) => {
     isAuth,
     express.json(),
     cors({
-      origin: "http://localhost:4200",
+      origin: process.env.FRONTEND_URL,
       methods: "GET,POST,PUT,DELETE",
-      allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+      allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
     }),
     expressMiddleware(server, {
