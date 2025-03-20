@@ -12,6 +12,8 @@ const accountRoutes = require("./routes/account.routes");
 
 const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.va53l.mongodb.net/${process.env.MONGO_DATABASE}`;
 
+console.log("Allowed Frontend URL:", process.env.FRONTEND_URL);
+
 app.use(
   cors({
     origin: process.env.FRONTEND_URL, // This is where your Angular app is running in development
