@@ -23,6 +23,8 @@ app.use(
   })
 );
 
+app.use(process.env.FRONTEND_URL)
+
 app.use(express.json());
 
 app.use("/notification", notificationRoute);
