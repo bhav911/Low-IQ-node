@@ -14,7 +14,7 @@ const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PAS
 
 app.use(
   cors({
-    origin: "http://localhost:4200", // This is where your Angular app is running in development
+    origin: process.env.FRONTEND_URL, // This is where your Angular app is running in development
     methods: "GET,POST,PUT,DELETE", // Allow specific HTTP methods
     allowedHeaders: ["Content-Type", "Authorization"], // Add your custom headers here
     credentials: true, // Allow cookies to be sent
