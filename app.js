@@ -13,9 +13,8 @@ const accountRoutes = require("./routes/account.routes");
 app.get("/", (req, res) => {
   res.send("API is working!");
 });
-const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.va53l.mongodb.net/${process.env.MONGO_DATABASE}`;
 
-console.log("Allowed Frontend URL:", process.env.FRONTEND_URL);
+const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.va53l.mongodb.net/${process.env.MONGO_DATABASE}`;
 
 app.use(
   cors({
@@ -25,8 +24,6 @@ app.use(
     credentials: true, // Allow cookies to be sent
   })
 );
-
-app.use(process.env.FRONTEND_URL);
 
 app.use(express.json());
 
