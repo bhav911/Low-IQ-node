@@ -86,7 +86,7 @@ const quizResolver = {
           }
         }
 
-        if (user._id.toString() !== quiz.creatorId.toString()) {
+        if (!user || user._id.toString() !== quiz.creatorId.toString()) {
           quiz.questions.forEach((que) => {
             que.options.forEach((opt) => {
               delete opt.isCorrect;
