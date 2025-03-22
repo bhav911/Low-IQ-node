@@ -222,8 +222,9 @@ const userResolver = {
       }
     },
 
-    async checkIfUsernameIsTaken(_, { username }) {
+    async checkIfUsernameIsTaken(_, { rawUsername }) {
       try {
+        let username = rawUsername.toLowerCase();
         const user = await User.findOne({ username });
         return { isTaken: Boolean(user) };
       } catch (err) {
@@ -247,7 +248,7 @@ const userResolver = {
 
         const newUser = new User({
           email: userInput.email,
-          username: userInput.username,
+          username: userInput.username.toLowerCase(),
           password: hashedPwd,
           role: userInput.role,
         });
@@ -384,7 +385,7 @@ const userResolver = {
           });
         }
 
-        user.username = username;
+        user.username = username.toLowerCase();
         await user.save();
         return { Success: true };
       } catch (err) {
