@@ -352,7 +352,7 @@ const helperFunctions = {
       const mentionTag = `@${mention.username}`;
       formattedText = formattedText.replace(
         new RegExp(`@${mention.username}`, "g"),
-        `<a href="/profile/${mention.userId}" class="mention">${mentionTag}</a>`
+        `<a href="/profile/${mention.username}" class="mention">${mentionTag}</a>`
       );
     }
 
