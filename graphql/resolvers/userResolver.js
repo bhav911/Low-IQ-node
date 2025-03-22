@@ -222,10 +222,10 @@ const userResolver = {
       }
     },
 
-    async checkIfUsernameIsTaken(_, { rawUsername }) {
+    async checkIfUsernameIsTaken(_, { username }) {
       try {
-        let username = rawUsername.toLowerCase();
-        const user = await User.findOne({ username });
+        let formatedUsername = username.toLowerCase();
+        const user = await User.findOne({ formatedUsername });
         return { isTaken: Boolean(user) };
       } catch (err) {
         throw new GraphQLError("Failed to check username availability", {
