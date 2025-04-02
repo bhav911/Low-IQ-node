@@ -238,6 +238,7 @@ const userResolver = {
   Mutation: {
     async createUser(_, { userInput }) {
       try {
+        userInput.email = userInput.email.toLowerCase();
         const user = await User.findOne({ email: userInput.email });
         if (user) {
           throw new GraphQLError("Email already registered! try Sign-In", {
@@ -332,6 +333,8 @@ const userResolver = {
             extensions: { code: 404 },
           });
         }
+
+        email = email.toLowerCase();
 
         if (user.email === email) {
           throw new GraphQLError("Please provide a diffrent email address!", {

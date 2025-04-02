@@ -1,9 +1,27 @@
 const express = require("express");
+const { createServer } = require("http");
 const mongoose = require("mongoose");
-const QuizStats = require("./models/quizStats");
 const cors = require("cors");
 const startGraphQLServe = require("./graphql/graphqlserver");
+const { Server } = require("socket.io");
+const { Redis } = require("ioredis");
+const roomFunctions = require("./socket.io/room");
+
+const QuizStats = require("./models/quizStats");
+const User = require("./models/User");
+
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+const redis = new Redis(process.env.UPSTASH_REDIS_CONNECTION_STRING);
+const ROOM_TTL = 60; // Auto-delete rooms after 30 minutes
 
 //routes
 const notificationRoute = require("./routes/notification.routes");
@@ -59,8 +77,34 @@ mongoose
     console.log("connected to DB");
 
     startGraphQLServe(app);
-    app.listen(process.env.PORT || 3000, () => {
-      console.log(`Listening on port ${process.env.PORT || 3000}`);
+
+    io.on("connection", (socket) => {
+      socket.on("createRoom", (data, callback) =>
+        roomFunctions.createRoom(socket, data, callback)
+      );
+
+      socket.on("joinRoom", (data, callback) =>
+        roomFunctions.joinRoom(socket, data, callback)
+      );
+
+      socket.on("fetchRooms", (_, callback) =>
+        roomFunctions.fetchRooms(callback)
+      );
+
+      socket.on("startQuiz", (data) => roomFunctions.startQuiz(io, data));
+
+      socket.on("leaveRoom", (data) =>
+        roomFunctions.leaveRoom(io, socket, data)
+      );
+
+      socket.on("quizSubmitted", (data, callback) =>
+        roomFunctions.quizSubmitted(io, socket, data, callback)
+      );
+    });
+
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+      console.log(`Listening on port ${PORT}`);
     });
   })
   .catch((err) => {
