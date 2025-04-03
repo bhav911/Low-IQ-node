@@ -84,6 +84,16 @@ const roomFunction = {
 
   joinRoom: async (socket, { roomId, password, userId }, callback) => {
     try {
+      const user = await User.findById(userId);
+
+      if (!user) {
+        socket.emit("error", {
+          msg: "Not Authenticated",
+          roomId,
+        });
+        return;
+      }
+
       const roomKey = "room:" + roomId;
       const playerRoomKey = roomKey + ":players";
       const roomData = await redis.hgetall(roomKey);
@@ -102,7 +112,11 @@ const roomFunction = {
         return;
       }
 
-      const user = await User.findById(userId);
+      if (roomData.status === "in-progress") {
+        socket.emit("error", "Game Started! try again later...");
+        return;
+      }
+
       const player = {
         userId,
         isAdmin: false,
@@ -304,11 +318,19 @@ const roomFunction = {
 
       io.to(roomId).emit("quizStarted", quiz);
 
-      await redis.expire(`quiz:${roomId}`, questionCount * 60);
-      await redis.expire(`result:${roomId}`, questionCount * 60);
+      const timePerQuestion = timePerSecondFinder(difficulty);
+
+      await redis.expire(
+        `quiz:${roomId}`,
+        questionCount * (timePerQuestion + 30)
+      );
+      await redis.expire(
+        `result:${roomId}`,
+        questionCount * (timePerQuestion + 30)
+      );
     } catch (err) {
       console.log("Error: " + err);
-      socket.emit("errro", "Something went wrong!");
+      socket.emit("error", "Something went wrong!");
       return;
     }
   },
@@ -366,5 +388,19 @@ const roomFunction = {
     }
   },
 };
+
+function timePerSecondFinder(difficulty) {
+  switch (difficulty) {
+    case "easy": {
+      return 45;
+    }
+    case "medium": {
+      return 90;
+    }
+    case "hard": {
+      return 150;
+    }
+  }
+}
 
 module.exports = roomFunction;
