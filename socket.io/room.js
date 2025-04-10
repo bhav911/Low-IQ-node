@@ -82,7 +82,7 @@ const roomFunction = {
     }
   },
 
-  joinRoom: async (socket, { roomId, password, userId }, callback) => {
+  joinRoom: async (io, socket, { roomId, password, userId }, callback) => {
     try {
       const user = await User.findById(userId);
 
@@ -139,6 +139,21 @@ const roomFunction = {
           await redis.zrem("public_rooms", roomKey);
         }
       }
+
+      const luck = randomLuckGenerator();
+
+      if (
+        roomData.isPrivate === "false" &&
+        maxPlayers > currentPlayers &&
+        luck
+      ) {
+        io.emit("newRoom", {
+          ...roomData,
+          roomId,
+          currentPlayers: currentPlayers + 1,
+        });
+      }
+
       const players = await redis.smembers(playerRoomKey);
       const parsedPlayers = players.map((player) => JSON.parse(player));
       callback({
@@ -194,7 +209,9 @@ const roomFunction = {
         socket.emit("error", "Room not found!");
         return;
       }
-      const isRoomPrivate = await redis.hget(roomKey, "isPrivate");
+      const roomData = await redis.hgetall(roomKey);
+      const isRoomPrivate = roomData.isPrivate;
+      const maxPlayers = +roomData.max_participants;
 
       const players = await redis.smembers(roomPlayerKey);
       const playerToRemove = players.find((player) => {
@@ -247,7 +264,7 @@ const roomFunction = {
           if (isRoomPrivate === "false") {
             await redis.zincrby("public_rooms", 1, roomKey);
           }
-          const playerSubmited = await redis.zcard("result:" + roomId);
+          const playerSubmited = (await redis.zcard("result:" + roomId)) || 0;
           if (playerSubmited >= currentPlayers) {
             await redis.hset("room:" + roomId, {
               status: "in-lobby",
@@ -255,6 +272,19 @@ const roomFunction = {
             });
             await redis.del("result:" + roomId, "quiz:" + roomId);
             io.to(roomId).emit("quizFinished");
+          }
+          const luck = randomLuckGenerator();
+          if (
+            roomData.status === "in-lobby" &&
+            roomData.isPrivate === "false" &&
+            maxPlayers > currentPlayers &&
+            luck
+          ) {
+            socket.broadcast.emit("newRoom", {
+              ...roomData,
+              roomId,
+              currentPlayers: currentPlayers - 1,
+            });
           }
           socket.to(roomId).emit("playerLeft", {
             userId,
@@ -351,6 +381,11 @@ const roomFunction = {
         return;
       }
 
+      let maxPlayers = +(await redis.hget(
+        `room:${roomId}`,
+        "max_participants"
+      ));
+
       let score = 0;
 
       const stringQuestions = await redis.hget("quiz:" + roomId, "questions");
@@ -378,6 +413,25 @@ const roomFunction = {
         });
         await redis.del("result:" + roomId, "quiz:" + roomId);
         io.to(roomId).emit("quizFinished");
+
+        const luck = randomLuckGenerator();
+        if (
+          roomData.isPrivate === "false" &&
+          maxPlayers > playersInRoom &&
+          luck
+        ) {
+          let roomData = await redis.hgetall(`room:${roomId}`);
+          io.emit("newRoom", {
+            ...roomData,
+            roomId,
+            currentPlayers,
+          });
+        }
+        socket.to(roomId).emit("playerLeft", {
+          userId,
+          currentPlayers: currentPlayers - 1,
+          nextAdmin: nextAdmin?.userId || undefined,
+        });
       }
 
       callback({ scoreCard: userAnswers, score });
@@ -401,6 +455,11 @@ function timePerSecondFinder(difficulty) {
       return 150;
     }
   }
+}
+
+function randomLuckGenerator() {
+  const val = Math.random();
+  return val <= 0.33;
 }
 
 module.exports = roomFunction;

@@ -84,7 +84,7 @@ mongoose
       );
 
       socket.on("joinRoom", (data, callback) =>
-        roomFunctions.joinRoom(socket, data, callback)
+        roomFunctions.joinRoom(io, socket, data, callback)
       );
 
       socket.on("fetchRooms", (_, callback) =>
