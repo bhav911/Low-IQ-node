@@ -91,7 +91,7 @@ mongoose
         roomFunctions.fetchRooms(callback)
       );
 
-      socket.on("startQuiz", (data) => roomFunctions.startQuiz(io, data));
+      socket.on("startQuiz", (data) => roomFunctions.startQuiz(io, socket, data));
 
       socket.on("leaveRoom", (data) =>
         roomFunctions.leaveRoom(io, socket, data)

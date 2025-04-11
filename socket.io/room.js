@@ -300,7 +300,11 @@ const roomFunction = {
     }
   },
 
-  startQuiz: async (io, { roomId, userId, difficulty, questionCount }) => {
+  startQuiz: async (
+    io,
+    socket,
+    { roomId, userId, difficulty, questionCount }
+  ) => {
     try {
       const room = await redis.hgetall("room:" + roomId);
       if (Object.keys(room).length === 0) {
@@ -315,6 +319,7 @@ const roomFunction = {
       try {
         quiz = await generateQuizHelper(room.title, questionCount, difficulty);
       } catch (error) {
+        console.log(error);
         socket.emit("error", "Something Went Wrong!");
         return;
       }
