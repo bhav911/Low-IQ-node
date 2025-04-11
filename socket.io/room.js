@@ -342,7 +342,7 @@ const roomFunction = {
         status: "in-progress",
         startedAt: Date.now(),
         difficulty,
-        questionCount,
+        questionCount: quiz.questionCount,
       });
 
       quiz.questions.forEach((question) => {
@@ -397,10 +397,11 @@ const roomFunction = {
       const questions = JSON.parse(stringQuestions);
 
       questions.forEach((question) => {
-        const correctOptionId = question.options.find((o) => o.isCorrect)._id;
         const userSelectedOption = userAnswers.find(
           (u) => u.questionId === question._id
         );
+        const correctOptionId =
+          question.options.find((o) => o.isCorrect)._id ?? userSelectedOption;
         userSelectedOption.correctOptionId = correctOptionId;
 
         if (correctOptionId === userSelectedOption.optionId) {
@@ -420,23 +421,15 @@ const roomFunction = {
         io.to(roomId).emit("quizFinished");
 
         const luck = randomLuckGenerator();
-        if (
-          roomData.isPrivate === "false" &&
-          maxPlayers > playersInRoom &&
-          luck
-        ) {
+        let isPrivate = await redis.hget(`room:${roomId}`, "isPrivate");
+        if (isPrivate === "false" && maxPlayers > playersInRoom && luck) {
           let roomData = await redis.hgetall(`room:${roomId}`);
           io.emit("newRoom", {
             ...roomData,
             roomId,
-            currentPlayers,
+            playersInRoom,
           });
         }
-        socket.to(roomId).emit("playerLeft", {
-          userId,
-          currentPlayers: currentPlayers - 1,
-          nextAdmin: nextAdmin?.userId || undefined,
-        });
       }
 
       callback({ scoreCard: userAnswers, score });
