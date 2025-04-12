@@ -86,7 +86,7 @@ exports.generateQuizHelper = async (
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   const result = await model.generateContent(prompt);
   const rawResponse = result.response.text();
-  const cleanedResponse = rawResponse.replace(/```json|```/g, "").trim();
+  const cleanedResponse = rawResponse.replace(/```json|```/g, "").replace(/,\s*([}\]])/g, '$1').trim();
   const parsedQuiz = JSON.parse(cleanedResponse);
   return parsedQuiz;
 };
